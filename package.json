@@ -1,0 +1,11 @@
+{
+  "name": "primo-explore-linked-data-demo",
+  "version": "0.0.1",
+  "description": "A Demo linked data",
+  "author": "noamamit92",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/noamamit92/primo-explore-linked-data-demo.git"
+  }
+
+}
