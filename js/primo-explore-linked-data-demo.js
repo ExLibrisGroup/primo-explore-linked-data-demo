@@ -1,6 +1,6 @@
 app.controller('FullViewAfterController', ['$http',function ($http) {
     var vm = this;
-    vm.local17 = vm.parentCtrl.item.pnx.links.lln17;
+    vm.uri = vm.parentCtrl.item.pnx.links.uri;
     /*vm.local17 = ['$$VFolklore$$Uhttp://id.loc.gov/authorities/subjects/sh85050104.json$$Tsubjects',
         '$$VFairy tales$$Uhttp://id.loc.gov/authorities/subjects/sh85046925.json$$Tsubjects'];*/
     vm.terms = [];
@@ -43,7 +43,7 @@ app.controller('FullViewAfterController', ['$http',function ($http) {
                 searchObject.scope = vm.parentCtrl.fullViewService.$state.params.search_scope;
                 searchObject.facet = '';
                 searchObject.mode = 'advanced';
-                term.linkURL = "search("+JSON.stringify(searchObject)+")";
+                term.linkURL = "exploreMain.search("+JSON.stringify(searchObject)+")";
 
                 vm.terms.push(term);
             })
@@ -60,7 +60,7 @@ app.controller('FullViewAfterController', ['$http',function ($http) {
     vm.ld={};
 
     vm.$onInit = function () {
-        var links = vm.local17;
+        var links = vm.uri;
 
         var typeToIndexedField = {subject: 'sub'};
         var entryParsed = [];
@@ -68,10 +68,13 @@ app.controller('FullViewAfterController', ['$http',function ($http) {
             vm.title = 'Related Subject Terms';
             links.forEach(function (entry) {
                 var parsed = vm.parseLocalField(entry);
-                entryParsed.push(parsed);
-                var url = parsed.link + '.jsonp?callback=callback';
-                vm.type = typeToIndexedField[entryParsed[0].type] ? typeToIndexedField[entryParsed[0].type] : entryParsed[0].type;
-                $http.jsonp(url);
+                if(parsed){
+                    entryParsed.push(parsed);
+                    var url = parsed.link + '.jsonp?callback=callback';
+                    vm.type = typeToIndexedField[entryParsed[0].type] ? typeToIndexedField[entryParsed[0].type] : entryParsed[0].type;
+                    $http.jsonp(url);
+                }
+
             });
         }
 
@@ -83,12 +86,13 @@ app.controller('FullViewAfterController', ['$http',function ($http) {
         let splitted = link.split('$$');
         let values = {};
         let mapping = {
-            T: 'type',
+            A: 'type',
             V: 'label',
             U: 'link'
         };
         if (splitted.length > 1) {
             splitted.forEach(function(element){
+                element = element.replace('U(uri) ','U');
                 let code = element.substring(0,1);
                 let value = element.substring(1);
                 if(mapping[code]){
@@ -96,8 +100,10 @@ app.controller('FullViewAfterController', ['$http',function ($http) {
                 }
             })
         }
-
-        return values;
+        if(values.type === 'subject'){
+            return values;
+        }
+        return undefined;
 
     }
 
