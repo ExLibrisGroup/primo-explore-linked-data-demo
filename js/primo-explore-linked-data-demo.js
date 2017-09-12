@@ -1,7 +1,13 @@
 
 
+    app.config(['$sceDelegateProvider',function($sceDelegateProvider) {
+            var urlWhitelist = $sceDelegateProvider.resourceUrlWhitelist();
+    urlWhitelist.push( 'http://id.loc.gov**' );
+    $sceDelegateProvider.resourceUrlWhitelist(urlWhitelist);
+    }]);
 
-    app.controller('FullViewAfterController', ['$http', '$mdDialog',function ($http, $mdDialog) {
+
+    app.controller('FullViewAfterController', ['$http', '$mdDialog','$window',function ($http, $mdDialog, $window) {
         var vm = this;
         vm.uri = vm.parentCtrl.item.pnx.links.uri;
         /*vm.local17 = ['$$VFolklore$$Uhttp://id.loc.gov/authorities/subjects/sh85050104.json$$Tsubjects',
@@ -9,7 +15,6 @@
         vm.terms = [];
 
         window.callback = function (data) {
-
             var  displayedFields = data.filter(function(element){
                 return element['@type'] &&
 
@@ -75,10 +80,22 @@
                         parsed.link.forEach(function (link) {
                             if (link.indexOf('.loc.') > -1) {
                                 //entryParsed.push(parsedEntry);
-                                var url = link + '.jsonp?callback=callback';
+                                var url = link + '.jsonp';
                                 //vm.type = typeToIndexedField[entryParsed[0].type] ? typeToIndexedField[entryParsed[0].type] : entryParsed[0].type;
                                 vm.type = typeToIndexedField[parsed.type[0]] ? typeToIndexedField[parsed.type[0]] : parsed.type[0];
-                                $http.jsonp(url);
+
+                                //Since the api return a malformed callback name wqe need to hack a litle :)
+                                var c = $window.angular.callbacks.$$counter.toString(36);
+                                $window['angularcallbacks_' + c] = function (data) {
+                                    $window.angular.callbacks['_' + c](data);
+                                    delete $window['angularcallbacks_' + c];
+                                };
+                                $http.jsonp(url,{jsonpCallbackParam: 'callback'}).then(
+                                    function(response){
+                                        callback(response.data);
+                                    }
+                                    );
+
                             }
                         });
 
