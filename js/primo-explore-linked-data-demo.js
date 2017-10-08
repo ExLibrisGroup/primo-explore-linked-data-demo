@@ -69,7 +69,7 @@
 
         vm.$onInit = function () {
             var links = vm.uri;
-
+            var c = undefined;
             var typeToIndexedField = {subject: 'sub'};
             var entryParsed = [];
             if(links) {
@@ -84,12 +84,6 @@
                                 //vm.type = typeToIndexedField[entryParsed[0].type] ? typeToIndexedField[entryParsed[0].type] : entryParsed[0].type;
                                 vm.type = typeToIndexedField[parsed.type[0]] ? typeToIndexedField[parsed.type[0]] : parsed.type[0];
 
-                                //Since the api return a malformed callback name wqe need to hack a litle :)
-                                var c = $window.angular.callbacks.$$counter.toString(36);
-                                $window['angularcallbacks_' + c] = function (data) {
-                                    $window.angular.callbacks['_' + c](data);
-                                    delete $window['angularcallbacks_' + c];
-                                };
                                 $http.jsonp(url,{jsonpCallbackParam: 'callback'}).then(
                                     function(response){
                                         callback(response.data);
